@@ -1,0 +1,17 @@
+body {
+    margin: 0;
+    background-color: #333333;
+    font-family:Roboto Condensed;
+    color: #FFFFFF;
+}
+
+#title {
+    text-align: center;
+}
+
+#game-canvas {
+    width: 960px;
+    height: 600px;
+    display: block;
+    margin: 0 auto;
+}
