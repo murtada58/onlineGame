@@ -2,7 +2,7 @@
 
 class AnimatedSprit
 {
-    constructor (x, y, animations, state)
+    constructor (x, y, animations, state, time)
     {
         this.x = x;
         this.y = y;
@@ -16,7 +16,7 @@ class AnimatedSprit
         this.direction = "down";
         this.name = Math.random();
         this.paths = [];
-        this.currentPathNumber = 0;
+        this.lastTimePathTime = time;
     }
 
     draw(ctx, time, fixed, playerX, playerY)
@@ -35,7 +35,7 @@ class AnimatedSprit
         this.animations[this.state].animate(ctx, time);
     }
 
-    update(dT, time, websocket, oldDirections)
+    update(dT, time, websocket)
     {
         if (this.left + this.right > 0)
         {
@@ -67,18 +67,30 @@ class AnimatedSprit
         this.x += dT * this.speed * (this.left + this.right);
         this.y += dT * this.speed * (this.up + this.down);
 
-        if (websocket !== false && websocket.readyState === 1 && (oldDirections.up !== this.up || oldDirections.down !== this.down || oldDirections.left !== this.left || oldDirections.right !== this.right))
+        if (websocket !== false && websocket.readyState === 1 && this.paths.length > 0)
         {
-            oldDirections.up = this.up;
-            oldDirections.down = this.down;
-            oldDirections.left = this.left;
-            oldDirections.right = this.right;
-            websocket.send(JSON.stringify({action: 'move', "pos": {x: this.x, y: this.y, state: this.state, left: this.left, right: this.right, up: this.up, down: this.down, name: this.name}}));
+            websocket.send(JSON.stringify({ action: 'move', "name": this.name, "paths": this.paths}));
+            this.lastTimePathSent = time;
+            this.paths = [];
         }
     }
 
-    updateFromPath(dT, time)
+    updateFromPaths(dT, time)
     {
+        if (this.paths.length > 1 && this.paths[0].time + this.paths[1].deltaFromLastPath <= time)
+        {
+            
+            this.paths.shift();
+            this.paths[0].time = time;
+            this.x = this.paths[0].x;
+            this.y = this.paths[0].y;
+            this.left = this.paths[0].left;
+            this.right = this.paths[0].right;
+            this.up = this.paths[0].up;
+            this.down = this.paths[0].down;
+        }
+
+        
         if (this.left + this.right > 0)
         {
             this.state = "runRight";
@@ -113,9 +125,8 @@ class AnimatedSprit
     getPath(time)
     {
         const path = {
-            pathNumber: this.currentPathNumber,
             time: time,
-            deltaFromLastPath: this.path.length > 0 ? time - this.path[(this.currentPathNumber - 1) - this.path[0].pathNumber].time : 0,
+            deltaFromLastPath: time - this.lastTimePathTime,
             x: this.x,
             y: this.y,
             up: this.up,
@@ -124,7 +135,7 @@ class AnimatedSprit
             right: this.right,
             state: this.state,
         }
-
+        this.lastTimePathTime = time;
         return path
     }
 }

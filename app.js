@@ -1,35 +1,35 @@
 "use strict";
 
-const DOMAIN =  "websockettictactoe.co.uk" // set to "127.0.0.1" or your servers ip/domain name if you want to host your own server you will need to change wss to ws as well unless you have a certificate
-const PORT = "6080"
+const DOMAIN = "websockettictactoe.co.uk"; // set to "127.0.0.1" or your servers ip/domain name if you want to host your own server you will need to change wss to ws as well unless you have a certificate
+const PORT = "6080";
 
 let websocket = new WebSocket(`wss://${DOMAIN}:${PORT}/`);
 
 websocket.onmessage = function (event)
 {
     const data = JSON.parse(event.data);
-    console.log(data)
     switch (data.type) 
     {
-        case 'new':
-            console.log("testing")
+        case 'leave':
+            delete players[data.name];
             break;
         case 'update':
-            players = data.players.map((playerData) => {
-                let newPlayer = new AnimatedSprit(playerData.x || 0, playerData.y || 0, animations, playerData.state || "idleDown");
-                newPlayer.name = playerData.name;
-                newPlayer.up = playerData.up;
-                newPlayer.down = playerData.down;
-                newPlayer.left = playerData.left;
-                newPlayer.right = playerData.right;
-                return newPlayer
+            Object.keys(data.players).forEach(name => {
+                if (players.hasOwnProperty(name)) {
+                    players[name].paths = players[name].paths.concat(data.players[name]);
+                }
+                else {
+                    players[name] = new AnimatedSprit(790, 645, animations, "idleDown", time);
+                    players[name].paths = players[name].paths.concat(data.players[name]);
+                    players[name].paths[0].time = time;
+                }
             })
-            players = players.filter(newPlayer => newPlayer.name !== player.name);
+            if (players.hasOwnProperty(player.name)) { delete players[player.name]; }
             break;
     }
 }
 
-let players = [];
+let players = {};
 
 let canvas = document.getElementById("game-canvas");
 let ctx = canvas.getContext("2d");
@@ -65,7 +65,7 @@ const animations = {
     idleDown: new Animation(0, 0, 20, 30, time, 2, scale, 0.4, 0, idleSpriteSheet[0], [], true),
 };
 
-const player = new AnimatedSprit(790, 645, animations, "runDown");
+const player = new AnimatedSprit(790, 645, animations, "runDown", time);
 
 // intial setup
 function setup()
@@ -85,7 +85,7 @@ const directions = {
 // physics update
 function update(dT)
 {
-    players.map(player => player.update(dT, time, false, {}));
+    Object.keys(players).forEach(playerName => players[playerName].updateFromPaths(dT, time));
     player.update(dT, time, websocket, directions);
 }
 
@@ -94,9 +94,8 @@ function draw(dT)
 {
     colorRect(ctx, 0, 0, canvas.width, canvas.height, "#444444")
     ctx.drawImage(background, player.x, player.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-    players.map(newPlayer => newPlayer.draw(ctx, time, false, player.x, player.y));
+    Object.keys(players).forEach(playerName => players[playerName].draw(ctx, time, false, player.x, player.y));
     player.draw(ctx, time, true);
-    //console.log(player.x, player.y)
 }
 
 // game loop
@@ -172,7 +171,7 @@ function keyUp(evt)
     }
     if (updatePath)
     {
-        player.path.push()
+        player.paths.push(player.getPath(time))
     }
 }
 
@@ -195,34 +194,34 @@ function keyPressed(evt)
             }
             break;
         case 37:
-            player.left = -1;
-            updatePath = true;
             if (!leftKeyDown && !paused)
             {  
+                player.left = -1;
+                updatePath = true;
                 leftKeyDown = true;
             }
             break;
         case 38:
-            player.up = -1;
-            updatePath = true;
             if (!upKeyDown && !paused)
             {
+                player.up = -1;
+                updatePath = true;
                 upKeyDown = true;
             }
             break;
         case 39:
-            player.right = 1;
-            updatePath = true;
             if (!rightKeyDown && !paused)
-            {             
+            {      
+                player.right = 1;
+                updatePath = true;       
                 rightKeyDown = true;
             }
             break;
         case 40:
-            player.down = 1;
-            updatePath = true;
             if (!downKeyDown && !paused)
             {
+                player.down = 1;
+                updatePath = true;
                 downKeyDown = true;
             }
             break;
@@ -238,5 +237,9 @@ function keyPressed(evt)
                 oneKeyDown = true;
             }
             break;
+    }
+    if (updatePath)
+    {
+        player.paths.push(player.getPath(time))
     }
 }
