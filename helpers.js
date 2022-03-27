@@ -17,6 +17,7 @@ class AnimatedSprit
         this.name = Math.random();
         this.paths = [];
         this.lastTimePathTime = time;
+        this.sentName = false;
     }
 
     draw(ctx, time, fixed, playerX, playerY)
@@ -67,9 +68,10 @@ class AnimatedSprit
         this.x += dT * this.speed * (this.left + this.right);
         this.y += dT * this.speed * (this.up + this.down);
 
-        if (websocket !== false && websocket.readyState === 1 && this.paths.length > 0)
+        if (websocket !== false && websocket.readyState === 1 && (this.paths.length > 0 || !this.sentName))
         {
             websocket.send(JSON.stringify({ action: 'move', "name": this.name, "paths": this.paths}));
+            this.sentName = true;
             this.lastTimePathSent = time;
             this.paths = [];
         }
