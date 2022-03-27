@@ -4,6 +4,7 @@ const DOMAIN = "websockettictactoe.co.uk"; // set to "127.0.0.1" or your servers
 const PORT = "6080";
 
 let websocket = new WebSocket(`wss://${DOMAIN}:${PORT}/`);
+const BUFFER_SIZE = 0.7; // in seconds
 
 websocket.onmessage = function (event)
 {
@@ -25,8 +26,8 @@ websocket.onmessage = function (event)
                     if (players[name].paths.length === 0) {
                         players[name].paths.push(players[name].getPath(time))
                     }
-                    players[name].paths[0].time = time;
-                    players[name].paths[0].actualTime = time;
+                    players[name].paths[0].time = time + BUFFER_SIZE;
+                    players[name].paths[0].actualTime = time + BUFFER_SIZE;
                 }
             })
             if (players.hasOwnProperty(player.name)) { delete players[player.name]; }
