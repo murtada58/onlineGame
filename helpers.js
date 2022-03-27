@@ -88,6 +88,10 @@ class AnimatedSprit
             this.paths[0].time = time - this.paths[0].actualTime < 0.5 ? time : this.paths[0].actualTime;
             this.x = this.paths[0].x;
             this.y = this.paths[0].y;
+        }
+
+        if (this.paths.length >= 1 && this.paths[0].time <= time)
+        {   
             this.left = this.paths[0].left;
             this.right = this.paths[0].right;
             this.up = this.paths[0].up;

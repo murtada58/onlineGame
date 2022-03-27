@@ -16,18 +16,32 @@ websocket.onmessage = function (event)
             break;
         case 'update':
             Object.keys(data.players).forEach(name => {
-                if (players.hasOwnProperty(name) && data.players[name].paths.length > 0) {
-                    players[name].paths = players[name].paths.concat(data.players[name].paths);
+                if (name != player.name && players.hasOwnProperty(name) && data.players[name].paths.length > 0) {
+                    if (players[name].paths.length === 0)
+                    {
+                        players[name].paths = players[name].paths.concat(data.players[name].paths);
+                        players[name].paths[0].time = time + BUFFER_SIZE;
+                        players[name].paths[0].actualTime = time + BUFFER_SIZE;
+                        players[name].x = players[name].paths[0].x;
+                        players[name].y = players[name].paths[0].y;
+                    }
+                    else {
+                        players[name].paths = players[name].paths.concat(data.players[name].paths);
+                    }
+                    
                 }
                 else if (name != player.name && !players.hasOwnProperty(name)) {
                     console.log(name)
                     players[name] = new AnimatedSprit(data.players[name].x, data.players[name].y, animations, "idleDown", time);
                     players[name].paths = players[name].paths.concat(data.players[name].paths);
-                    if (players[name].paths.length === 0) {
-                        players[name].paths.push(players[name].getPath(time))
+                    if (data.players[name].paths > 0)
+                    {
+                        players[name].paths = players[name].paths.concat(data.players[name].paths);
+                        players[name].paths[0].time = time + BUFFER_SIZE;
+                        players[name].paths[0].actualTime = time + BUFFER_SIZE;
+                        players[name].x = players[name].paths[0].x;
+                        players[name].y = players[name].paths[0].y;
                     }
-                    players[name].paths[0].time = time + BUFFER_SIZE;
-                    players[name].paths[0].actualTime = time + BUFFER_SIZE;
                 }
             })
             if (players.hasOwnProperty(player.name)) { delete players[player.name]; }
