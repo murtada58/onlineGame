@@ -81,7 +81,7 @@ class AnimatedSprit
         {
             this.paths[1].actualTime = this.paths[0].actualTime + this.paths[1].deltaFromLastPath;
             this.paths.shift();
-            this.paths[0].time = time - this.paths[0].actualTime < 1 ? time : this.paths[0].actualTime;
+            this.paths[0].time = time - this.paths[0].actualTime < 0.5 ? time : this.paths[0].actualTime;
             this.x = this.paths[0].x;
             this.y = this.paths[0].y;
             this.left = this.paths[0].left;
