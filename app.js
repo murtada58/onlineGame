@@ -15,13 +15,18 @@ websocket.onmessage = function (event)
             break;
         case 'update':
             Object.keys(data.players).forEach(name => {
-                if (players.hasOwnProperty(name)) {
-                    players[name].paths = players[name].paths.concat(data.players[name]);
+                if (players.hasOwnProperty(name) && data.players[name].paths.length > 0) {
+                    players[name].paths = players[name].paths.concat(data.players[name].paths);
                 }
-                else {
-                    players[name] = new AnimatedSprit(790, 645, animations, "idleDown", time);
-                    players[name].paths = players[name].paths.concat(data.players[name]);
+                else if (name != player.name && !players.hasOwnProperty(name)) {
+                    console.log(name)
+                    players[name] = new AnimatedSprit(data.players[name].x, data.players[name].y, animations, "idleDown", time);
+                    players[name].paths = players[name].paths.concat(data.players[name].paths);
+                    if (players[name].paths.length === 0) {
+                        players[name].paths.push(players[name].getPath(time))
+                    }
                     players[name].paths[0].time = time;
+                    players[name].paths[0].actualTime = time;
                 }
             })
             if (players.hasOwnProperty(player.name)) { delete players[player.name]; }
@@ -65,7 +70,7 @@ const animations = {
     idleDown: new Animation(0, 0, 20, 30, time, 2, scale, 0.4, 0, idleSpriteSheet[0], [], true),
 };
 
-const player = new AnimatedSprit(790, 645, animations, "runDown", time);
+const player = new AnimatedSprit(770, 620, animations, "runDown", time);
 
 // intial setup
 function setup()

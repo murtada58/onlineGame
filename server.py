@@ -1,5 +1,4 @@
 import asyncio
-from asyncio.windows_events import NULL
 import json
 import logging
 import ssl
@@ -18,7 +17,7 @@ async def update():
             USERS,
             json.dumps({ 
                 "type": "update",
-                "players": { USERS[player]["name"]: USERS[player]["paths"] for player in USERS if USERS[player]["name"] != NULL and USERS[player]["paths"] }
+                "players": { USERS[player]["name"]: USERS[player]["paths"] for player in USERS if USERS[player]["name"] != None and USERS[player]["paths"] }
             })
         )
         for player in USERS:

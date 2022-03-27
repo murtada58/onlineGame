@@ -77,11 +77,11 @@ class AnimatedSprit
 
     updateFromPaths(dT, time)
     {
-        if (this.paths.length > 1 && this.paths[0].time + this.paths[1].deltaFromLastPath <= time)
+        while (this.paths.length > 1 && this.paths[0].time + this.paths[1].deltaFromLastPath <= time)
         {
-            
+            this.paths[1].actualTime = this.paths[0].actualTime + this.paths[1].deltaFromLastPath;
             this.paths.shift();
-            this.paths[0].time = time;
+            this.paths[0].time = time - this.paths[0].actualTime < 1 ? time : this.paths[0].actualTime;
             this.x = this.paths[0].x;
             this.y = this.paths[0].y;
             this.left = this.paths[0].left;
@@ -125,6 +125,7 @@ class AnimatedSprit
     getPath(time)
     {
         const path = {
+            actualTime: time,
             time: time,
             deltaFromLastPath: time - this.lastTimePathTime,
             x: this.x,
