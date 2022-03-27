@@ -13,21 +13,25 @@ USERS = {}
 
 async def update():
     while True:
+        for player in USERS:
+            if USERS[player]["paths"]:
+                USERS[player]["x"] = USERS[player]["paths"][-1]["x"]
+                USERS[player]["y"] = USERS[player]["paths"][-1]["y"]
         websockets.broadcast(
             USERS,
             json.dumps({ 
                 "type": "update",
-                "players": { USERS[player]["name"]: USERS[player]["paths"] for player in USERS if USERS[player]["name"] != None and USERS[player]["paths"] }
+                "players": { USERS[player]["name"]: { "paths": USERS[player]["paths"], "x": USERS[player]["x"], "y": USERS[player]["y"] } for player in USERS if USERS[player]["name"] != None }
             })
         )
         for player in USERS:
             USERS[player]["paths"] = []
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
 
 async def game(websocket, path):
     try:
         print("new user connected")
-        USERS[websocket] = {"name": NULL, "paths": []}
+        USERS[websocket] = {"name": None, "paths": [], "x": 770, "y": 620}
         async for message in websocket:
             data = json.loads(message)
             if data["action"] == "move":
